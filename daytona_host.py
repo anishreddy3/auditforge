@@ -65,13 +65,23 @@ print("🔑 Writing .env file...")
 env_lines = "\\n".join(f"{k}={v}" for k, v in env_vars.items())
 sandbox.process.exec(f'printf "{env_lines}" > /home/daytona/app/.env')
 
-# Start the server
+# Create a startup script and launch in background
 print("🌐 Starting AuditForge server on port 8000...")
-sandbox.process.exec("cd /home/daytona/app && nohup python main.py --serve > /tmp/auditforge.log 2>&1 &")
+sandbox.process.exec(
+    "echo '#!/bin/bash\ncd /home/daytona/app && exec python main.py --serve' > /home/daytona/start.sh && chmod +x /home/daytona/start.sh"
+)
+# Use timeout=5 so exec returns quickly after daemonizing
+try:
+    sandbox.process.exec(
+        "bash -c 'setsid /home/daytona/start.sh > /tmp/auditforge.log 2>&1 < /dev/null &'",
+        timeout=5,
+    )
+except Exception:
+    pass  # Timeout is expected — server is starting in background
 
-# Verify it's running
+# Wait for server to boot
 import time
-time.sleep(3)
+time.sleep(5)
 response = sandbox.process.exec("curl -s http://localhost:8000/health")
 print(f"   Health check: {response.result.strip()}")
 
