@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuditForge — Multi-Agent Compliance Auditor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0e1a;
+            --surface: #121828;
+            --surface-2: #1a2236;
+            --border: #2a3452;
+            --text: #e2e8f0;
+            --text-muted: #8892a8;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --green: #10b981;
+            --green-glow: rgba(16, 185, 129, 0.3);
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --blue: #3b82f6;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 2rem 0 3rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .sponsor-badges {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .badge.t3 { border-color: #8b5cf6; color: #a78bfa; }
+        .badge.bd { border-color: #f97316; color: #fb923c; }
+        .badge.kimi { border-color: #06b6d4; color: #22d3ee; }
+        .badge.daytona { border-color: #10b981; color: #34d399; }
+        .badge.tr { border-color: #eab308; color: #facc15; }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Panel */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Input Section */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #4f46e5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-verify {
+            background: var(--surface-2);
+            color: var(--green);
+            border: 1px solid var(--green);
+            margin-top: 0.75rem;
+        }
+
+        .btn-verify:hover:not(:disabled) {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        /* Pipeline Status */
+        .pipeline-steps {
+            margin-top: 1.5rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            background: var(--surface-2);
+            border: 1px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .step.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .step.complete {
+            border-color: var(--green);
+        }
+
+        .step.error {
+            border-color: var(--red);
+        }
+
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            background: var(--surface);
+            border: 2px solid var(--border);
+        }
+
+        .step.active .step-icon { border-color: var(--accent); }
+        .step.complete .step-icon { border-color: var(--green); background: rgba(16, 185, 129, 0.1); }
+
+        .step-info { flex: 1; }
+        .step-name { font-size: 0.85rem; font-weight: 600; }
+        .step-detail { font-size: 0.72rem; color: var(--text-muted); }
+        .step-sponsor { font-size: 0.65rem; color: var(--accent); margin-top: 2px; }
+
+        /* Results Area */
+        .results-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Scores */
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .score-card {
+            background: var(--surface-2);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .score-value.green { color: var(--green); }
+        .score-value.yellow { color: var(--yellow); }
+        .score-value.red { color: var(--red); }
+
+        .score-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.25rem;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .risk-badge.LOW { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+        .risk-badge.MEDIUM { background: rgba(245, 158, 11, 0.15); color: var(--yellow); }
+        .risk-badge.HIGH { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+
+        /* Proof Chain */
+        .proof-chain {
+            margin-top: 1rem;
+        }
+
+        .proof-entry {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .proof-entry::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--green);
+        }
+
+        .proof-entry.invalid::before { background: var(--red); }
+
+        .proof-field {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .proof-key { color: var(--text-muted); min-width: 80px; }
+        .proof-val { color: var(--text); word-break: break-all; }
+
+        /* Report */
+        .report-content {
+            background: var(--surface-2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .report-content h1, .report-content h2, .report-content h3 {
+            color: var(--accent);
+            margin-top: 1rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Verification Result */
+        .verify-result {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+        }
+
+        .verify-result.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+
+        .verify-result.failure {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Architecture Diagram */
+        .arch-diagram {
+            background: var(--surface-2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text-muted);
+        }
+
+        .hidden { display: none; }
+
+        /* Elapsed */
+        .elapsed {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🏛️ AuditForge</div>
+            <p class="tagline">Multi-Agent Compliance Auditor with Verifiable Agent Identity</p>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">
+                Cryptographic, not contractual, trust.
+            </p>
+            <div class="sponsor-badges">
+                <span class="badge t3">🔐 Terminal 3</span>
+                <span class="badge bd">🌐 Bright Data</span>
+                <span class="badge kimi">🧠 Kimi K2.6</span>
+                <span class="badge daytona">📦 Daytona</span>
+                <span class="badge tr">⚡ TokenRouter</span>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Panel: Controls -->
+            <div>
+                <div class="panel">
+                    <div class="panel-title">🎯 Run Compliance Audit</div>
+                    <div class="input-group">
+                        <label>Target Company</label>
+                        <input type="text" id="companyInput" placeholder="e.g. Acme Corp, Tesla, Apple..." value="Acme Corp">
+                    </div>
+                    <button class="btn btn-primary" id="runBtn" onclick="runAudit()">
+                        🚀 Run Audit Pipeline
+                    </button>
+                    <button class="btn btn-verify" id="verifyBtn" onclick="verifyChain()" disabled>
+                        🔍 Verify Proof Chain
+                    </button>
+
+                    <div class="pipeline-steps" id="pipelineSteps">
+                        <div class="step" id="step-init">
+                            <div class="step-icon">🔐</div>
+                            <div class="step-info">
+                                <div class="step-name">Initialize Identities</div>
+                                <div class="step-detail">Register agent DIDs on T3N</div>
+                                <div class="step-sponsor">Terminal 3 Agent Dev Kit</div>
+                            </div>
+                        </div>
+                        <div class="step" id="step-collect">
+                            <div class="step-icon">📡</div>
+                            <div class="step-info">
+                                <div class="step-name">Data Collector</div>
+                                <div class="step-detail">Scrape filings & news</div>
+                                <div class="step-sponsor">Bright Data Web Scraping</div>
+                            </div>
+                        </div>
+                        <div class="step" id="step-score">
+                            <div class="step-icon">🧮</div>
+                            <div class="step-info">
+                                <div class="step-name">Risk Scorer</div>
+                                <div class="step-detail">Sandboxed computation</div>
+                                <div class="step-sponsor">Daytona Sandbox</div>
+                            </div>
+                        </div>
+                        <div class="step" id="step-report">
+                            <div class="step-icon">📝</div>
+                            <div class="step-info">
+                                <div class="step-name">Report Writer</div>
+                                <div class="step-detail">Long-context analysis</div>
+                                <div class="step-sponsor">Kimi K2.6 via TokenRouter</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="elapsed hidden" id="elapsed"></div>
+                </div>
+
+                <!-- Architecture -->
+                <div class="panel" style="margin-top: 1.5rem;">
+                    <div class="panel-title">🏗️ Architecture</div>
+                    <div class="arch-diagram">┌────────────────────────────────────┐
+│       LangGraph Orchestrator       │
+├──────────┬──────────┬──────────────┤
+│  Data    │  Risk    │   Report     │
+│ Collector│  Scorer  │   Writer     │
+├──────────┼──────────┼──────────────┤
+│Bright    │ Daytona  │ Kimi K2.6    │
+│Data      │ Sandbox  │ TokenRouter  │
+├──────────┴──────────┴──────────────┤
+│    Terminal 3 — TEE Identity &     │
+│    Verifiable Action Signing       │
+└────────────────────────────────────┘</div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Results -->
+            <div class="results-area" id="resultsArea">
+                <div class="panel" id="scoresPanel" style="display:none;">
+                    <div class="panel-title">📊 Risk Assessment</div>
+                    <div id="riskBadge" style="text-align:center; margin-bottom:1rem;"></div>
+                    <div class="scores-grid" id="scoresGrid"></div>
+                </div>
+
+                <div class="panel" id="outputPanel" style="display:none;">
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab('report')">📄 Report</div>
+                        <div class="tab" onclick="switchTab('proof')">🔐 Proof Chain</div>
+                        <div class="tab" onclick="switchTab('raw')">📦 Raw Data</div>
+                    </div>
+                    <div class="tab-content active" id="tab-report">
+                        <div class="report-content" id="reportContent"></div>
+                    </div>
+                    <div class="tab-content" id="tab-proof">
+                        <div class="proof-chain" id="proofChain"></div>
+                        <div id="verifyResult"></div>
+                    </div>
+                    <div class="tab-content" id="tab-raw">
+                        <div class="report-content" id="rawData" style="font-family: monospace; font-size: 0.75rem;"></div>
+                    </div>
+                </div>
+
+                <!-- Empty state -->
+                <div class="panel" id="emptyState">
+                    <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🏛️</div>
+                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Ready to audit</p>
+                        <p style="font-size: 0.85rem;">Enter a company name and run the pipeline to see the multi-agent audit in action.</p>
+                        <div style="margin-top: 2rem; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto;">
+                            <p style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem;">How it works:</p>
+                            <p style="font-size: 0.75rem; margin-bottom: 0.5rem;">1. <strong>Data Collector</strong> scrapes company filings & news via Bright Data</p>
+                            <p style="font-size: 0.75rem; margin-bottom: 0.5rem;">2. <strong>Risk Scorer</strong> runs calculations in a Daytona sandbox</p>
+                            <p style="font-size: 0.75rem; margin-bottom: 0.5rem;">3. <strong>Report Writer</strong> generates audit via Kimi K2.6</p>
+                            <p style="font-size: 0.75rem; margin-bottom: 0.5rem;">4. Every step is <strong>TEE-signed</strong> by Terminal 3 for tamper-proof verification</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentResult = null;
+
+        async function runAudit() {
+            const company = document.getElementById('companyInput').value.trim();
+            if (!company) return;
+
+            const btn = document.getElementById('runBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="display:inline-block;margin-right:8px;"></span> Running pipeline...';
+
+            document.getElementById('verifyBtn').disabled = true;
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('scoresPanel').style.display = 'none';
+            document.getElementById('outputPanel').style.display = 'none';
+            document.getElementById('elapsed').classList.add('hidden');
+
+            // Animate steps
+            resetSteps();
+            await animateStep('step-init', 500);
+            await animateStep('step-collect', 800);
+
+            try {
+                const startTime = Date.now();
+
+                // Start score animation while waiting
+                const scorePromise = animateStep('step-score', 1000);
+
+                const response = await fetch('/audit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ company_name: company }),
+                });
+
+                const result = await response.json();
+                currentResult = result;
+
+                await scorePromise;
+                await animateStep('step-report', 500);
+
+                // Complete all steps
+                completeStep('step-init');
+                completeStep('step-collect');
+                completeStep('step-score');
+                completeStep('step-report');
+
+                const elapsed = (Date.now() - startTime) / 1000;
+                document.getElementById('elapsed').textContent = `Completed in ${result.elapsed_seconds.toFixed(1)}s`;
+                document.getElementById('elapsed').classList.remove('hidden');
+
+                if (result.success) {
+                    showResults(result);
+                    document.getElementById('verifyBtn').disabled = false;
+                } else {
+                    markStepError('step-report');
+                    alert('Audit failed: ' + result.error);
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '🚀 Run Audit Pipeline';
+        }
+
+        function showResults(result) {
+            // Scores
+            const scoresPanel = document.getElementById('scoresPanel');
+            scoresPanel.style.display = 'block';
+
+            const scores = result.scores;
+            const riskLevel = scores.risk_level || 'UNKNOWN';
+            document.getElementById('riskBadge').innerHTML = `<span class="risk-badge ${riskLevel}">${riskLevel} RISK</span>`;
+
+            const grid = document.getElementById('scoresGrid');
+            grid.innerHTML = `
+                <div class="score-card">
+                    <div class="score-value ${getScoreColor(scores.financial_health?.score)}">${scores.financial_health?.score || '-'}</div>
+                    <div class="score-label">Financial Health</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value ${getScoreColor(scores.regulatory_compliance?.score)}">${scores.regulatory_compliance?.score || '-'}</div>
+                    <div class="score-label">Compliance</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value ${getScoreColor(scores.reputation_risk?.score)}">${scores.reputation_risk?.score || '-'}</div>
+                    <div class="score-label">Reputation</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value ${getScoreColor(scores.composite_score)}">${scores.composite_score || '-'}</div>
+                    <div class="score-label">Composite</div>
+                </div>
+            `;
+
+            // Report
+            document.getElementById('outputPanel').style.display = 'block';
+            document.getElementById('reportContent').textContent = result.report;
+
+            // Proof chain
+            const proofDiv = document.getElementById('proofChain');
+            proofDiv.innerHTML = result.proof_chain.map((entry, i) => `
+                <div class="proof-entry" id="proof-${i}">
+                    <div class="proof-field"><span class="proof-key">Step</span><span class="proof-val">${i + 1} — ${entry.agent_name}</span></div>
+                    <div class="proof-field"><span class="proof-key">Action</span><span class="proof-val">${entry.action}</span></div>
+                    <div class="proof-field"><span class="proof-key">Agent DID</span><span class="proof-val">${entry.agent_id}</span></div>
+                    <div class="proof-field"><span class="proof-key">Signature</span><span class="proof-val">${entry.tee_signature}</span></div>
+                    <div class="proof-field"><span class="proof-key">Input Hash</span><span class="proof-val">${entry.input_hash}</span></div>
+                    <div class="proof-field"><span class="proof-key">Output Hash</span><span class="proof-val">${entry.output_hash}</span></div>
+                    <div class="proof-field"><span class="proof-key">Timestamp</span><span class="proof-val">${new Date(entry.timestamp * 1000).toISOString()}</span></div>
+                </div>
+            `).join('');
+
+            // Raw data
+            document.getElementById('rawData').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function verifyChain() {
+            if (!currentResult || !currentResult.proof_chain.length) return;
+
+            const btn = document.getElementById('verifyBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="display:inline-block;margin-right:8px;"></span> Verifying...';
+
+            switchTab('proof');
+
+            try {
+                const response = await fetch('/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ proof_chain: currentResult.proof_chain }),
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('verifyResult');
+
+                if (result.valid) {
+                    resultDiv.innerHTML = `
+                        <div class="verify-result success">
+                            ✅ ${result.message} (${result.verified_steps}/${result.total_steps} steps verified)
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="verify-result failure">
+                            ❌ ${result.message} — Failed steps: ${result.failed_steps.join(', ')}
+                        </div>
+                    `;
+                    result.failed_steps.forEach(i => {
+                        document.getElementById(`proof-${i}`)?.classList.add('invalid');
+                    });
+                }
+            } catch (err) {
+                document.getElementById('verifyResult').innerHTML = `
+                    <div class="verify-result failure">❌ Verification error: ${err.message}</div>
+                `;
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '🔍 Verify Proof Chain';
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab-content#tab-${name}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function getScoreColor(score) {
+            if (score >= 70) return 'green';
+            if (score >= 50) return 'yellow';
+            return 'red';
+        }
+
+        function resetSteps() {
+            document.querySelectorAll('.step').forEach(s => {
+                s.classList.remove('active', 'complete', 'error');
+            });
+        }
+
+        async function animateStep(id, duration) {
+            const step = document.getElementById(id);
+            step.classList.add('active');
+            await sleep(duration);
+        }
+
+        function completeStep(id) {
+            const step = document.getElementById(id);
+            step.classList.remove('active');
+            step.classList.add('complete');
+        }
+
+        function markStepError(id) {
+            const step = document.getElementById(id);
+            step.classList.remove('active');
+            step.classList.add('error');
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        // Enter key support
+        document.getElementById('companyInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') runAudit();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "auditforge-t3n-scripts",
+  "version": "1.0.0",
+  "description": "Terminal 3 T3N SDK bridge scripts for AuditForge",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@terminal3/t3n-sdk": "latest"
+  }
+}
