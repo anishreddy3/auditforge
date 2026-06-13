@@ -173,25 +173,11 @@ Every agent action produces a signed proof entry:
 
 A CFO or regulator can verify the entire decision chain cryptographically — no trust in the operator required.
 
-## Demo Script (2 minutes)
 
-1. **[0:00-0:20]** Show the architecture — 3 agents, each with Terminal 3 identity
-2. **[0:20-0:50]** Trigger audit for "Tesla" → pipeline executes with live signing
-3. **[0:50-1:20]** Show risk scores + AI-generated report (Kimi K2.6)
-4. **[1:20-1:40]** Inspect proof chain — each step has a unique TEE signature
-5. **[1:40-2:00]** Click "Verify Proof Chain" → all 3 steps validated cryptographically
 
-## Why It Wins
+## Contributors
 
-- **Directly addresses the #1 enterprise AI blocker** — agent accountability
-- **Cryptographic, not contractual, trust** — TEE-signed proofs, not promises
-- **Production architecture** — LangGraph pipeline, sandboxed execution, model routing
-- **5 sponsor integrations** at code level with real API usage
-- **Working end-to-end demo** deployed on Daytona
-
-## Team
-
-Built by [Anish Reddy](https://github.com/anishreddy3) at Agent Forge Hackathon, Singapore — June 2026.
+Built by [Anish Posim Reddy](https://github.com/anishreddy3) at Agent Forge Hackathon, Singapore — June 2026.
 
 ## License
 
