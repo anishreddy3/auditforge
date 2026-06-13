@@ -94,3 +94,10 @@ print("=" * 60)
 print()
 print("To stop and clean up:")
 print(f'  python -c "from daytona import Daytona; Daytona().delete(\'{sandbox.id}\')"')
+
+
+from daytona import Daytona
+d = Daytona()
+sb = d.get("57ba420d-c557-4768-86d6-defa74170664")
+link = sb.get_preview_link(8000)
+print(link.url)

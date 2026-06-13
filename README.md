@@ -33,10 +33,6 @@ Enterprises deploying AI agents for finance, legal, and procurement workflows **
 4. **Every step** is signed with a Terminal 3 TEE-backed verifiable identity
 5. A **Verification API** lets anyone cryptographically validate the entire chain
 
-## Live Demo
-
-🌐 **Public URL:** [https://8000-0f9b6930-0ba6-4b83-aa33-db5bcd043ab4.daytonaproxy01.net](https://8000-0f9b6930-0ba6-4b83-aa33-db5bcd043ab4.daytonaproxy01.net)
-
 Hosted on a Daytona sandbox.
 
 ## Sponsor Integration
